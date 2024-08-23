@@ -4,6 +4,9 @@ import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class prismaService extends PrismaClient {
+  findUnique(arg0: { where: { id: number; }; }) {
+      throw new Error("Method not implemented.");
+  }
   constructor() {
     super({
       datasources: {
