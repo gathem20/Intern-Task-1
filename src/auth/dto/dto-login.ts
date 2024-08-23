@@ -1,12 +1,6 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsString,
-  Matches,
-  MinLength,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 
-export class login {
+export class loginDto {
   @IsNotEmpty()
   @IsEmail({}, { message: 'enter correct email or password' })
   readonly email: string;
