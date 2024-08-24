@@ -9,33 +9,36 @@ import * as bcrypt from 'bcryptjs';
 export class AuthService {
   constructor(
     private prisma: prismaService,
-    private config: ConfigService,
     private jwt: JwtService,
+    private config: ConfigService,
   ) {}
   async signup(signup: signupDto) {
-    const { email, password, firstName, lastName } = signup;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const createUser = await this.prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        firstName,
-        lastName,
-      },
-    });
-    const token = this.jwt.sign({
-      id: createUser.id,
-    });
-    const existingUser = await this.prisma.user.findUnique({
-      where: {
-        email: email,
-      },
-    });
 
-    if (existingUser) {
-      throw new Error('Email already in use');
-    }
-    return { token };
+      const email = signup.email;
+      const hashedPassword = await bcrypt.hash(signup.password, 10);
+      const createUser = await this.prisma.user.create({
+        data: {
+          email:email,
+          password: hashedPassword,
+          firstName: 'yousef',
+          lastName: 'gathem',
+        },
+      });
+      console.log(createUser.email)
+      const token = this.jwt.sign({
+        id: createUser.id,
+      });
+      const existingUser = await this.prisma.user.findUnique({
+        where: { email: email },
+      });
+      
+      
+      if (existingUser) {
+        throw new Error('Email already in use');
+      }
+      return { token };
+      
+  
   }
   getUser(login: loginDto) {
     throw new Error('Method not implemented.');

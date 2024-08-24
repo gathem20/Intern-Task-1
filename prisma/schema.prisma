@@ -16,11 +16,13 @@ datasource db {
 }
 
 model User {
-  id        Int    @id @default(autoincrement())
-  email     String
-  firstName String
-  lastName  String
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  firstName String?
+  lastName  String?
   password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   // image     String?
   // role      String  @default("admin")
 }

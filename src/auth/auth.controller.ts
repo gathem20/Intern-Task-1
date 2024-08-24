@@ -8,12 +8,12 @@ export class AuthController {
   constructor(private authservice: AuthService) {}
 
   @Post('signup')
-  createUser(@Body() dto: signupDto){
+  createUser(@Body() dto: signupDto) {
     return this.authservice.signup(dto);
   }
 
-  @Get('login')
+  @Post('login')
   getUser(@Body() dto: loginDto) {
-     return this.authservice.getUser(dto);
+    return this.authservice.getUser(dto);
   }
 }
