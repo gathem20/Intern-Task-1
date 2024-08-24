@@ -7,20 +7,10 @@ import {
 } from 'class-validator';
 
 export class signupDto {
+  
   @IsNotEmpty()
-  @IsString()
-  firstName: string;
-
-  @IsNotEmpty()
-  @IsString()
-  lastName: string;
-
-  @IsNotEmpty()
-  @IsEmail()
-  @Matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, {
-    message: 'Invalid email format. Email must contain "@" and end with ".com"',
-  })
-  email: string;
+  @IsEmail({}, { message: 'please enter correct email' })
+  readonly email: string;
 
   @IsNotEmpty()
   @IsString()
@@ -29,5 +19,13 @@ export class signupDto {
       'Password must contain at least one uppercase letter, one lowercase letter, and one special character',
   })
   @MinLength(8)
-  password: string;
+  readonly password: string;
+
+  @IsNotEmpty()
+  @IsString()
+  firstName: string;
+
+  @IsNotEmpty()
+  @IsString()
+  lastName: string;
 }

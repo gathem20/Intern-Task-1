@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, Response } from '@nestjs/common';
 import { loginDto } from './dto/dto-login';
 import { signupDto } from './dto/dto-signup';
 import { prismaService } from 'src/prisma/prisma.service';
@@ -13,43 +13,54 @@ export class AuthService {
     private config: ConfigService,
   ) {}
   async signup(signup: signupDto) {
+    const email = signup.email;
+    const existUser = await this.prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
+    if (existUser) {
+      throw new BadRequestException('Email already in use');
+    }
     try {
-      const email = signup.email;
       const hashedPassword = await bcrypt.hash(signup.password, 10);
       const createUser = await this.prisma.user.create({
         data: {
           email: email,
           password: hashedPassword,
-          firstName: 'yousef',
-          lastName: 'gathem',
+          firstName: signup.firstName,
+          lastName: signup.lastName,
         },
       });
-      console.log(createUser.email);
       const token = this.jwt.sign({
         id: createUser.id,
       });
+
+
       return { token };
     } catch (error) {
-      return { msg: 'email already in use' };
+      throw new BadRequestException('Email already in use');
     }
   }
-  async getUser(login: loginDto) {
+  async getUser(login: loginDto, @Response({ passthrough: true }) response?) {
     const User = await this.prisma.user.findUnique({
       where: { email: login.email },
     });
     console.log(User);
     if (!User) {
-      throw new UnauthorizedException('Email or password is incorrect');
+      throw new BadRequestException('Email or password is incorrect');
     }
     const isPassword = await bcrypt.compare(login.password, User.password);
 
     if (!isPassword) {
-      throw new UnauthorizedException('Email or password is incorrect');
+      throw new BadRequestException('Email or password is incorrect');
     }
 
     const token = this.jwt.sign({
       id: User.id,
     });
+
+    response.setCookie('access_token', this.jwt.sign({ id: User.id }));
     return { token };
   }
 }
