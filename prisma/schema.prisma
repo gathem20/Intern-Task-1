@@ -11,18 +11,70 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  // uncomment next line if you use Prisma <5.10
-  // directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 model User {
-  id        Int      @id @unique @default(autoincrement())
-  email     String   @unique
-  firstName String?
-  lastName  String?
+  id        Int        @id @unique @default(autoincrement())
+  email     String     @unique
+  username  String
   password  String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  image     String?
+  role      Role       @default(Reader)
+  Profile   Profile?
+  Blog      Blog[]
+  Comments  Comments[]
+}
+
+enum Role {
+  Admin
+  Editor
+  Reader
+}
+
+model Profile {
+  id       Int        @id @unique @default(autoincrement())
+  userId   Int        @unique
+  user     User       @relation(fields: [userId], references: [id])
+  blog     Blog[]
+  Comments Comments[]
+}
+
+model Blog {
+  id        Int        @id @unique @default(autoincrement())
+  profileId Int
+  profile   Profile    @relation(fields: [profileId], references: [id])
+  authorId  Int
+  title     String
+  content   String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  deletedAt DateTime   @updatedAt
+  author    User       @relation(fields: [authorId], references: [id])
+  Comments  Comments[]
+  Image     Image[]
+}
+
+model Comments {
+  id        Int     @id @unique @default(autoincrement())
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id])
+  profileId Int
+  profile   Profile @relation(fields: [profileId], references: [id])
+  blogId    Int
+  blog      Blog    @relation(fields: [blogId], references: [id])
+}
+
+model Image {
+  id        Int      @id @unique @default(autoincrement())
+  imageName String
+  size      String
+  imageType String
+  ImageUrl  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  image     String?
-  // role      String  @default("admin")
+  deletedAt DateTime @updatedAt
+  blogId    Int
+  blog      Blog     @relation(fields: [blogId], references: [id])
 }
