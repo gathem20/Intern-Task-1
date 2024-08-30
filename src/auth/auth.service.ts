@@ -6,8 +6,12 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { Response } from 'express';
+
 @Injectable()
 export class AuthService {
+  getuserById(response: globalThis.Response) {
+    throw new Error('Method not implemented.');
+  }
   constructor(
     private prisma: prismaService,
     private jwt: JwtService,
@@ -32,15 +36,18 @@ export class AuthService {
         data: {
           email: email,
           password: hashedPassword,
-          firstName: signup.firstName,
-          lastName: signup.lastName,
+          username: signup.username,
+          // bio: signup.bio,
         },
       });
       console.log(createUser);
       const token = this.jwt.sign({
-        id: createUser.id,
+        id: createUser.id
       });
-      // response.setCookie('access_token', this.jwt.sign(token));
+      response.cookie('access_token', this.jwt.sign({ id: createUser.id }), {
+        httpOnly: true,
+      });
+
       return { token };
     } catch (error) {
       throw new BadRequestException('Try Again..!');
@@ -51,30 +58,37 @@ export class AuthService {
     @Res({ passthrough: true }) response: Response,
   ) {
     console.log(response);
-    // try {
-    const User = await this.prisma.user.findUnique({
-      where: { email: login.email },
-    });
-    console.log(User);
-    if (!User) {
-      throw new BadRequestException('Email or password is incorrect');
+    try {
+      const User = await this.prisma.user.findUnique({
+        where: { email: login.email },
+      });
+      console.log(User);
+      if (!User) {
+        throw new BadRequestException('Email or password is incorrect');
+      }
+      const isPassword = await bcrypt.compare(login.password, User.password);
+
+      if (!isPassword) {
+        throw new BadRequestException('Email or password is incorrect');
+      }
+
+      const token = this.jwt.sign({
+        id: User.id,
+      });
+
+      response.cookie('access_token', this.jwt.sign({ id: User.id }), {
+        httpOnly: true,
+      });
+      return { token };
+    } catch (error) {
+      throw new BadRequestException('Try Again..!');
     }
-    const isPassword = await bcrypt.compare(login.password, User.password);
-
-    if (!isPassword) {
-      throw new BadRequestException('Email or password is incorrect');
-    }
-
-    const token = this.jwt.sign({
-      id: User.id,
-    });
-
-    response.cookie('access_token', this.jwt.sign({ id: User.id }), {
-      httpOnly: true,
-    });
-    return { token };
-    // } catch (error) {
-    //   throw new BadRequestException('Try Again..!');
-    // }
   }
+
+  async logout(@Res({ passthrough: true }) response: Response) {
+    response.clearCookie('access_token');
+    return { success: true };
+  }
+
+
 }
