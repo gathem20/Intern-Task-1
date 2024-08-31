@@ -14,39 +14,42 @@ datasource db {
 }
 
 model User {
-  id             Int        @id @unique @default(autoincrement())
-  email          String     @unique
+  id             Int       @id @unique @default(autoincrement())
+  email          String    @unique
   username       String
   password       String
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-  role           Role       @default(Reader)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  role           Role      @default(Reader)
   profilePicture Image?
-  bio            String?    @default("")
+  bio            String?   @default("")
   blog           Blog[]
-  Comments       Comments[]
+  comments       Comment[]
 }
 
 model Blog {
-  id        Int        @id @unique @default(autoincrement())
+  id        Int       @id @unique @default(autoincrement())
   authorId  Int
   title     String
   content   String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  deletedAt DateTime   @updatedAt
-  author    User       @relation(fields: [authorId], references: [id])
-  Comments  Comments[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime  @updatedAt
+  author    User      @relation(fields: [authorId], references: [id])
+  Comments  Comment[]
   Image     Image[]
 }
 
-model Comments {
-  id        Int  @id @unique @default(autoincrement())
-  userId    Int
-  user      User @relation(fields: [userId], references: [id])
-  profileId Int
-  blogId    Int
-  blog      Blog @relation(fields: [blogId], references: [id])
+model Comment {
+  id      Int       @id @unique @default(autoincrement())
+  userId  Int
+  user    User      @relation(fields: [userId], references: [id])
+  blogId  Int
+  blog    Blog      @relation(fields: [blogId], references: [id])
+  content String
+  replies Comment[] @relation("CommentReplies")
+  replyId Int?
+  reply   Comment?  @relation("CommentReplies", fields: [replyId], references: [id])
 }
 
 model Image {
