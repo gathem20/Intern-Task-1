@@ -4,7 +4,13 @@ import { prismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class UserService {
   constructor(private prisma: prismaService) {}
-  async getUserName(@Res({ passthrough: true }) response?: Response) {
-    return this.prisma.user.findMany();
+
+  async getuserById(@Res({ passthrough: true }) response: Response) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: 1,
+      },
+    });
+    return user;
   }
 }

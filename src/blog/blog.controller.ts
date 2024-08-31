@@ -2,7 +2,6 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, ValidationPipe } fro
 import { BlogService } from './blog.service';
 import { UserBlog } from './dto/blog.dto';
 import { CreatePostDto } from './dto/create.post.dto';
-import { updateDto } from 'src/user/dto/update.dto.user';
 import { UpdatePostDto } from './dto/update.post';
 
 @Controller('blog')
