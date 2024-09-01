@@ -1,16 +1,27 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  ValidationPipe,
+} from '@nestjs/common';
 import { BlogService } from './blog.service';
 import { UserBlog } from './dto/blog.dto';
 import { CreatePostDto } from './dto/create.post.dto';
 import { UpdatePostDto } from './dto/update.post';
+import { Role } from '@prisma/client';
 
 @Controller('blog')
 export class BlogController {
   constructor(private blogService: BlogService) {}
 
-  @Get('get-all-posts/:page')
-  getAllPosts(@Param('page') page: number) {
-    return this.blogService.findAllPosts(page);
+  @Get('get-all-posts')
+  getAllPosts(@Query() query) {
+    return this.blogService.findAllPosts(query?.page, query?.search);
   }
 
   @Get('get-post/:id')
@@ -40,5 +51,10 @@ export class BlogController {
   @Delete('delete-post/:id')
   deletePost(@Param('id') id: string) {
     return this.blogService.deletePost(id);
+  }
+
+  @Delete('delete-post-by-admin-editor')
+  removePostByAdminEditor(@Param('id') id: string, role: Role) {
+    return this.blogService.deletePostByAdminOrEditor(id, role);
   }
 }

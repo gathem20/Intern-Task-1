@@ -3,16 +3,25 @@ import { prismaService } from 'src/prisma/prisma.service';
 import { UserBlog } from './dto/blog.dto';
 import { CreatePostDto } from './dto/create.post.dto';
 import { UpdatePostDto } from './dto/update.post';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class BlogService {
   constructor(private prisma: prismaService) {}
 
-  async findAllPosts(page: number) {
+  async findAllPosts(page: string = '1', search: string = '') {
     try {
       const takePost = 10;
-      const skipPost = (page - 1) * takePost;
+      const skipPost = (+page - 1) * takePost;
       const posts = await this.prisma.blog.findMany({
+        where: {
+          OR: [
+            { title: { contains: search } },
+            {
+              content: { contains: search },
+            },
+          ],
+        },
         include: {
           author: true,
         },
@@ -110,5 +119,14 @@ export class BlogService {
     } catch (error) {
       throw new BadRequestException({ message: 'Post not found' });
     }
+  }
+
+  async deletePostByAdminOrEditor(id: string, role: Role) {
+    const findBlog = await this.prisma.blog.findUnique({
+      where:{
+        id: Number(id)
+      }, 
+    })
+      
   }
 }

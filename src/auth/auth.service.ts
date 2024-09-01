@@ -1,11 +1,17 @@
-import { BadRequestException, Injectable, Res } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Res,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { loginDto } from './dto/dto-login';
-import { signupDto } from './dto/dto-signup';
+import { signupDto, updateRoleDto } from './dto/dto-signup';
 import { prismaService } from 'src/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { Response } from 'express';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +31,7 @@ export class AuthService {
     const existUser = await this.prisma.user.findUnique({
       where: {
         email: email,
+        username: signup.username,
       },
     });
     if (existUser) {
@@ -42,7 +49,7 @@ export class AuthService {
       });
       console.log(createUser);
       const token = this.jwt.sign({
-        id: createUser.id
+        id: createUser.id,
       });
       response.cookie('access_token', this.jwt.sign({ id: createUser.id }), {
         httpOnly: true,
@@ -57,7 +64,6 @@ export class AuthService {
     login: loginDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    console.log(response);
     try {
       const User = await this.prisma.user.findUnique({
         where: { email: login.email },
@@ -90,5 +96,74 @@ export class AuthService {
     return { success: true };
   }
 
+  async updateRoleUser(id: number, role: Role, token: string) {
+    const { id: userId } = this.jwt.decode(token) as { id: number };
+    const findUser = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if ('Admin' !== token) {
+      throw new UnauthorizedException(
+        'You are not allowed to perform this action',
+      );
+    }
 
+    if ('Admin' !== findUser.role) {
+      throw new UnauthorizedException(
+        'You are not allowed to perform this action',
+      );
+    }
+    const updateUser = await this.prisma.user.update({
+      where: {
+        id: Number(id),
+      },
+      data: {
+        role: role,
+      },
+    });
+    // console.log(updateUser);
+    const userFromToken = await this.prisma.user.findUnique({
+      where: {
+        id: updateUser.id,
+      },
+    });
+
+    if (userFromToken.role !== role) {
+      throw new BadRequestException('Role update failed');
+    }
+
+    return { token };
+  }
+
+  async deleteUser(id: number, token: string, role: Role) {
+    // const { id: userId } = this.jwt.decode(token) as { id: number };
+    const findUser = await this.prisma.user.findUnique({
+      where: {
+        id: Number(id),
+      },
+    });
+    if ('Admin' === findUser.role) {
+      throw new UnauthorizedException(
+        'You are not allowed to perform this action',
+      );
+    }
+    const deleteUser = await this.prisma.user.delete({
+      where: {
+        id: Number(id),
+      },
+    });
+    console.log(deleteUser);
+    const userFromToken = await this.prisma.user.findUnique({
+      where: {
+        id: deleteUser.id,
+      },
+    });
+
+    console.log(userFromToken);
+    if (userFromToken) {
+      throw new BadRequestException('User delete failed');
+    }
+    return { message: 'User deleted successfully' };
+  }
 }

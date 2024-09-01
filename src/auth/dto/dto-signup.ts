@@ -1,6 +1,7 @@
 import {
   IsEmail,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   Matches,
@@ -24,8 +25,11 @@ export class signupDto {
   @IsNotEmpty()
   @IsString()
   username: string;
+}
 
-  // @IsNotEmpty()
-  // @IsString()
-  // image: string;
+export class updateRoleDto {
+  role: 'Editor' | 'Reader';
+
+  @IsNumber()
+  id: number;
 }

@@ -1,13 +1,12 @@
 import {
   IsEmail,
-  IsObject,
   IsOptional,
   IsString,
   Matches,
   MinLength,
 } from 'class-validator';
 
-export class updateDto {
+export class updateProfileDto {
   @IsEmail()
   @IsOptional()
   @IsString()
@@ -31,6 +30,6 @@ export class updateDto {
   bio: string;
 
   @IsOptional()
-  @IsString()
-  imageId: string;
+
+  profilePicture: string;
 }
